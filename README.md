@@ -1,5 +1,13 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4323447.svg)](https://doi.org/10.5281/zenodo.4323447)
-    
+
+# Initial draft can be found [here.](standard/network/Draft.md)
+
+This repository is meant for discussion and prototyping.
+
+Please file an issue for comments, questions and additions.
+
+---
+
 # WebAssembly System Interface
 
 ![WASI](WASI.png)
