@@ -66,7 +66,7 @@ mod wasi_ephemeral_network {
     /// Check to see if the provided handle is a network capability handle.
     ///
     /// Returns EBADF if the provided handle isn't a handle at all.
-    pub fn is_network_capability(handle: &impl Handle) -> Expected<bool, errno> { unimplemented!() }
+    pub fn is_network_capability(handle: &impl Handle) -> Expected<bool, errno> { todo!() }
 }
 
 
@@ -92,7 +92,7 @@ mod wasi_ephemeral_sockets {
     /// Create a new socket. Requires a network capability.
     /// 
     /// Only IPv4 and IPv6 are supported. IPv6 sockets returned by this function are never dualstack,
-    /// because the POSIX `IPV6_V6ONLY` option can't be implemented in a cross platform manner.
+    /// because the POSIX `IPV6_V6ONLY = false` option can't be implemented in a cross platform manner.
     /// If you want to handle both IPv4 and IPv6 traffic, create two sockets; one for IPv4 traffic and one for IPv6 traffic.
     /// 
     /// FYI, IPV6_V6ONLY defaults per platform:
@@ -125,12 +125,18 @@ mod wasi_ephemeral_sockets {
     /// 
     pub async fn socket(
 		network: &impl NetworkCapability,
-		domain: AddressFamily,
+		address_family: AddressFamily,
 		r#type: SocketType,
 		protocol: Option<SocketProtocol>
-	) -> Expected<Box<dyn Socket>, errno> { unimplemented!() }
+	) -> Expected<Box<dyn Socket>, errno> { todo!() }
 
 
+	/// Bind the socket to a specific IP address and port.
+	///
+	/// If the IP address is zero (`0.0.0.0` in IPv4, `::` in IPv6), it is left to the implementation to decide which
+    /// network interface(s) to bind to.
+	/// If the TCP/UDP port is zero, the socket will be bound to a random free port.
+	///
 	/// TODO: Windows implementations should by default try to emulate UNIX behaviour by setting SO_EXCLUSIVEADDRUSE?
 	///
     /// # References
@@ -139,7 +145,7 @@ mod wasi_ephemeral_sockets {
 	pub async fn bind(
 		socket: &impl Socket,
 		address: SocketAddress
-	) -> ExpectedNothing<errno> { unimplemented!() }
+	) -> Expected<(), errno> { todo!() }
 
 
     /// # References
@@ -148,7 +154,7 @@ mod wasi_ephemeral_sockets {
 	pub async fn listen(
 		socket: &impl Socket,
 		backlog_size_hint: Option<u32>
-	) -> ExpectedNothing<errno> { unimplemented!() }
+	) -> Expected<(), errno> { todo!() }
 
 
     /// Unlike POSIX, this function has no remote address out parameter.
@@ -159,7 +165,7 @@ mod wasi_ephemeral_sockets {
     /// - https://man7.org/linux/man-pages/man2/accept.2.html
 	pub async fn accept(
 		socket: &impl Socket
-		) -> Expected<Box<dyn Socket>, errno> { unimplemented!() }
+		) -> Expected<Box<dyn Socket>, errno> { todo!() }
 
 
     /// # References
@@ -168,7 +174,7 @@ mod wasi_ephemeral_sockets {
 	pub async fn connect(
 		socket: &impl Socket,
 		address: SocketAddress
-	) -> ExpectedNothing<errno> { unimplemented!() }
+	) -> Expected<(), errno> { todo!() }
 
 
     /// # References
@@ -177,7 +183,7 @@ mod wasi_ephemeral_sockets {
 	pub async fn shutdown(
 		socket: &impl Socket,
 		shutdown_type: ShutdownType
-	) -> ExpectedNothing<errno> { unimplemented!() }
+	) -> Expected<(), errno> { todo!() }
 
 
     /// Receive a message.
@@ -187,16 +193,23 @@ mod wasi_ephemeral_sockets {
     /// 
     /// Flags:
     /// - `peek`: Receive the message as usual, but don't remove the message from the queue.
-    /// - `wait_all`: Try to read as much data as possible into the provided buffers.
-    ///     Even if that means waiting while some data would already be readable.
+    /// - `wait_all`: Try to read as much data as possible into the provided buffers
+    ///     even if that means waiting while some initial data would already be readable otherwise.
+    ///     This is opposite to the default behaviour where the `receive` call returns as soon as possible.
+    ///     Note that this flag is only a hint. The implementation may choose to return before the entire buffer is filled.
+    ///     Only supported on stream-oriented sockets.
     /// 
     /// Returns:
     /// - The number of bytes read.
     /// - If the received datagram was larger than the provided buffers,
-    ///     the `truncated` flag will be set.
-    ///     `truncated` will always be false for Stream sockets.
+    ///     the excess data is lost and the `truncated` flag will be set.
+    ///     This never happens on Stream sockets.
     /// 
-    /// `receive_from` additionally returns the sender address.
+    /// `receive_from` additionally returns the sender address of the datagram or `None` for connection-oriented sockets.
+    /// 
+    /// TODO: iovec lengths are encoded as `usize` fields in UNIX, but `u32` in Windows regardless of OS-bitness.
+    ///     Similarly, the number of bytes read in the return value is a `ssize` on UNIX, but `u32` on Windows.
+    ///     Could be solved by silently capping the buffers at ssize::MAX before passing them to the native syscall?
     /// 
     /// # References
     /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/recv.html
@@ -207,13 +220,13 @@ mod wasi_ephemeral_sockets {
 		socket: &impl Socket,
 		iovs: &mut IovecArray,
 		flags: ReceiveInputFlags
-	) -> Expected<ReceiveOutput, errno> { unimplemented!() }
+	) -> Expected<ReceiveOutput, errno> { todo!() }
 
 	pub async fn receive_from(
 		socket: &impl Socket,
 		iovs: &mut IovecArray,
 		flags: ReceiveInputFlags
-	) -> Expected<ReceiveFromOutput, errno> { unimplemented!() }
+	) -> Expected<ReceiveFromOutput, errno> { todo!() }
     
 
     /// Send a message.
@@ -234,14 +247,14 @@ mod wasi_ephemeral_sockets {
 		socket: &impl Socket,
 		iovs: &mut IovecArray,
 		flags: SendInputFlags
-	) -> usize { unimplemented!() }
+	) -> Expected<usize, errno> { todo!() }
 
     pub async fn send_to(
 		socket: &impl Socket,
 		iovs: &mut IovecArray,
 		flags: SendInputFlags,
 		destination: SocketAddress
-	) -> usize { unimplemented!() }
+	) -> Expected<usize, errno> { todo!() }
 
 
     /// # References
@@ -249,7 +262,7 @@ mod wasi_ephemeral_sockets {
     /// - https://man7.org/linux/man-pages/man2/getpeername.2.html
 	pub fn get_remote_address(
 		socket: &impl Socket
-	) -> SocketAddress { unimplemented!() }
+	) -> Expected<SocketAddress, errno> { todo!() }
 
 
     /// # References
@@ -257,7 +270,7 @@ mod wasi_ephemeral_sockets {
     /// - https://man7.org/linux/man-pages/man2/getsockname.2.html
     pub fn get_local_address(
 		socket: &impl Socket
-	) -> SocketAddress { unimplemented!() }
+	) -> Expected<SocketAddress, errno> { todo!() }
 
     /// Buffer size.
     /// 
@@ -266,6 +279,7 @@ mod wasi_ephemeral_sockets {
     /// it may silently clamp the value or return an error.
     /// 
     /// TODO: investigate how existing platforms handle invalid values.
+    ///     -> Windows allows any u32 value, all the way from 0 to u32::MAX.
     /// 
     /// Similar to `sockopt(socket, SOL_SOCKET, SO_RCVBUF/SO_SNDBUF, ...)` in POSIX.
     /// 
@@ -276,21 +290,21 @@ mod wasi_ephemeral_sockets {
     /// - https://docs.microsoft.com/en-us/windows/win32/winsock/sol-socket-socket-options
     pub fn set_receive_buffer_size(
 		socket: &impl Socket,
-		size: u31
-	) { unimplemented!() }
+		size: u32
+	) -> Expected<(), errno> { todo!() }
 	
     pub fn get_receive_buffer_size(
 		socket: &impl Socket
-	) -> u31 { unimplemented!() }
+	) -> Expected<u32, errno> { todo!() }
 
     pub fn set_send_buffer_size(
 		socket: &impl Socket,
-		size: u31
-	) { unimplemented!() }
+		size: u32
+	) -> Expected<(), errno> { todo!() }
 
     pub fn get_send_buffer_size(
 		socket: &impl Socket
-	) -> u31 { unimplemented!() }
+	) -> Expected<u32, errno> { todo!() }
 
     /// Disable the Nagle algorithm.
     /// 
@@ -304,11 +318,11 @@ mod wasi_ephemeral_sockets {
     pub fn set_tcp_nodelay(
 		socket: &impl Socket,
 		enable_nodelay: bool
-	) { unimplemented!() }
+	) -> Expected<(), errno>{ todo!() }
 
     pub fn get_tcp_nodelay(
 		socket: &impl Socket
-	) -> bool { unimplemented!() }
+	) -> Expected<bool, errno> { todo!() }
 
 
 
@@ -320,9 +334,8 @@ mod wasi_ephemeral_sockets {
 
 
 
-    pub type u31 = u32; // Hmm
-    pub type Ipv4Address = u32;
-    pub type Ipv6Address = u128;
+    pub type Ipv4Address = [u8; 4];
+    pub type Ipv6Address = [u8; 16];
 
     pub struct Ipv4SocketAddress {
         port: u16, // sin_port
@@ -482,11 +495,6 @@ mod typenames {
     pub enum Expected<TOk, TError>
     {
         Ok(TOk),
-        Error(TError),
-    }
-    pub enum ExpectedNothing<TError>
-    {
-        Ok,
         Error(TError),
     }
 
