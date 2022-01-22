@@ -593,10 +593,10 @@ This section is mostly here to indicate the granularity of permissions that ough
 --allow-resolve=*
 
 # Only look up IPv4 addresses
---allow-resolve=ipv4://example.com
+--allow-resolve=example.com#ipv4-only
 
 # Only look up IPv6 addresses
---allow-resolve=ipv6://example.com
+--allow-resolve=example.com#ipv6-only
 
 
 
@@ -617,10 +617,10 @@ This section is mostly here to indicate the granularity of permissions that ough
 --allow-outbound=tcp://*:*
 
 # Allow TCP connection with IPv4 only
---allow-outbound=tcp4://...
+--allow-outbound=tcp://...#ipv4-only
 
 # Allow TCP connection with IPv6 only
---allow-outbound=tcp6://...
+--allow-outbound=tcp://...#ipv6-only
 
 # Allow TCP connections to a specific list of ports
 --allow-outbound=tcp://*:80,443
@@ -634,14 +634,18 @@ This section is mostly here to indicate the granularity of permissions that ough
 
 
 
+# Allow listening only on loopback interfaces on port 80
+--allow-inbound=tcp://localhost:80
+
+# Allow listening on a specific network interface on port 80
+--allow-inbound=tcp://eth0:80
+
 # Allow listening on any network interface on port 80
 --allow-inbound=tcp://*:80
 
 # Allow listening on a randomly generated port
 --allow-inbound=tcp://*:0
 
-# Allow listening only on the loopback interface on port 80
---allow-inbound=tcp://localhost:80
 ```
 
 ### Virtualization / mapping:
