@@ -78,7 +78,7 @@ In the Rust example code below, socket state transitions are modeled by swallowi
 
 pub mod new_typenames {
 
-    #[non_exhaustive] // TODO: How to model non_exhaustive with Wasm interface types?
+    #[non_exhaustive] // TODO: https://github.com/WebAssembly/interface-types/issues/145
     pub enum SocketProtocol {
         Tcp,
         Udp,
@@ -91,10 +91,10 @@ pub mod new_typenames {
     }
 
     pub struct Ipv4Address {
-        address: [u8; 4],
+        address: [u8; 4], // TODO: https://github.com/WebAssembly/interface-types/issues/146
     }
     pub struct Ipv6Address {
-        address: [u8; 16],
+        address: [u8; 16], // TODO: https://github.com/WebAssembly/interface-types/issues/146
         scope_id: u32,
     }
 
