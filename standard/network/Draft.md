@@ -566,7 +566,7 @@ fn getsockopt(socket: i32, level: i32, optname: i32) {
 ## Security
 <a name="security"></a>
 
-Wasm modules can not open sockets by themselves without somehow having acquired the ability to do so (IpAddressResolver, UdpCapableNetwork, TcpCapableNetwork). This allows some interesting workflows:
+Wasm modules can not open sockets by themselves without somehow having acquired the ability to do so (UdpCapableNetwork, TcpCapableNetwork). This allows some interesting workflows:
 - Passing a prebound listening socket to the wasm module, letting the module only accept and handle new connections. Leaving the socket setup to the implementation.
 - Passing an already connected socket to the wasm module, letting the module only handle that specific connection. This can be useful in scenarios where the implementation wants to spin up a wasm module per request.
 
