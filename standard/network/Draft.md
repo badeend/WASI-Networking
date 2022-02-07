@@ -357,7 +357,7 @@ pub mod socket_tcp {
         /// # References
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html
         /// - https://man7.org/linux/man-pages/man2/listen.2.html
-        fn listen(self, backlog_size_hint: Option<u32>) -> Result<Self::TcpServerSocket, (Self, errno)>;
+        fn listen(self, backlog_size_hint: Option<usize>) -> Result<Self::TcpServerSocket, (Self, errno)>;
     }
 
     pub trait TcpConnectionSocket : TcpSocket + InputByteStream + OutputByteStream {
