@@ -182,7 +182,7 @@ pub mod socket_udp {
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/socket.html
         /// - https://man7.org/linux/man-pages/man2/socket.2.html
         /// 
-        fn create_udp_socket(&self, address_family: IpAddressFamily) -> Self::UdpSocket;
+        fn create_udp_socket(&self, address_family: IpAddressFamily) -> Result<Self::UdpSocket, errno>;
     }
 
     pub trait UdpSocket : IpSocket {
@@ -320,7 +320,7 @@ pub mod socket_tcp {
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/socket.html
         /// - https://man7.org/linux/man-pages/man2/socket.2.html
         /// 
-        fn create_tcp_socket(&self, address_family: IpAddressFamily) -> Self::TcpIndeterminateSocket;
+        fn create_tcp_socket(&self, address_family: IpAddressFamily) -> Result<Self::TcpIndeterminateSocket, errno>;
     }
 
     pub trait TcpSocket : IpSocket {
