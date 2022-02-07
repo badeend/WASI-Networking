@@ -429,7 +429,8 @@ pub mod ip_resolve_address {
         /// Resolve an internet host name to a list of IP addresses.
         /// 
         /// # Parameters:
-        /// - `name`: The name to look up. IP addresses are not allowed.
+        /// - `name`: The name to look up. IP addresses are not allowed. Unicode domain names are automatically converted
+        ///     to ASCII using IDNA encoding.
         /// - `address_family`: If provided, limit the results to addresses of this specific address family.
         /// - `include_unavailable`: When set to true, this function will also return addresses of which the runtime
         ///   thinks (or knows) can't be connected to at the moment. For example, this will return IPv6 addresses on
