@@ -158,18 +158,6 @@ pub mod socket {
 
 
 
-/// Functions applicable to Internet sockets. This for example excludes UNIX sockets.
-pub mod socket_ip {
-    use crate::new_typenames::*;
-    use crate::socket::*;
-
-    pub trait IpSocket : Socket {
-        fn address_family(&self) -> IpAddressFamily;
-    }
-}
-
-
-
 /// UDP sockets MVP.
 pub mod socket_udp {
     use crate::typenames::*;
