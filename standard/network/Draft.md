@@ -189,7 +189,7 @@ pub mod socket_udp {
         fn create_udp_socket(&self, address_family: IpAddressFamily) -> Result<Self::UdpSocket, errno>;
     }
 
-    pub trait UdpSocket : IpSocket {
+    pub trait UdpSocket : Socket {
 
         /// Bind the socket to a specific IP address and port.
         ///
@@ -303,7 +303,7 @@ pub mod socket_tcp {
         fn create_tcp_socket(&self, address_family: IpAddressFamily) -> Result<Self::TcpIndeterminateSocket, errno>;
     }
 
-    pub trait TcpSocket : IpSocket {
+    pub trait TcpSocket : Socket {
 
         /// Bind the socket to a specific IP address and port.
         ///
