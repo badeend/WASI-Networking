@@ -162,7 +162,7 @@ pub mod socket {
     use crate::wasi_ephemeral_fd::*;
 
     pub trait Socket : Handle + Sized {
-        fn protocol(&self) -> SocketProtocol;
+        fn protocol(&self) -> Result<SocketProtocol, errno>;
     }
 }
 
