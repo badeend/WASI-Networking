@@ -93,11 +93,11 @@ pub mod new_typenames {
     }
 
     pub struct Ipv4Address { // Single field record for symmetry with Ipv6Address
-        data: u32,
+        data: u32, // The address in network order (big-endian). Note: WebAssembly is little-endian.
     }
     pub struct Ipv6Address { // Interface Types doesn't have either u128 or fixed length arrays. https://github.com/WebAssembly/interface-types/issues/146
-        data_msb: u64,
-        data_lsb: u64,
+        data_msb: u64, // Upper half of the address in network order (big-endian). Note: WebAssembly is little-endian.
+        data_lsb: u64, // Lower half of the address in network order (big-endian). Note: WebAssembly is little-endian.
     }
 
     pub enum IpAddress {
