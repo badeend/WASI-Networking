@@ -65,6 +65,7 @@ Dualstack support per platform according to the internet: (Not verified)
 - iovec lengths are encoded as `usize` fields in UNIX, but `u32` in Windows regardless of OS-bitness. Similarly, the number of bytes read in the return value of recv is a `ssize` on UNIX, but `u32` on Windows. Could be solved by silently capping the buffers at ssize::MAX before passing them to the native syscall?
 - This proposal doesn't mention (yet) how a wasm module should get a hold of the capability handles (IpAddressResolver, UdpCapableNetwork, TcpCapableNetwork).
 - Move scope_id out of Ipv6SocketAddress and into Ipv6Address? It seems logical that wherever the IPv6 address flows, the scope_id should flow too. This is the way Java and .NET have implemented it.
+- UDP sockets currently aren't InputByteStream & OutputByteStreams. In POSIX terms: they can't be read from & written to using the `read` and `write` syscalls. Can this be shimmed in wasi-libc?
 - Also, see the TODO comments sprinkled throughout the code below.
 
 ## Proposal spec
@@ -124,12 +125,21 @@ pub mod new_typenames {
     pub struct UdpReceiveResult {
         bytes_received: usize,
         truncated: bool, // MSG_TRUNC
+        remote_address: IpSocketAddress,
+
+        // Possible future additions:
+        // local_address: IpSocketAddress, // IP_PKTINFO / IP_RECVDSTADDR / IPV6_PKTINFO
+        // local_interface: u32, // IP_PKTINFO / IP_RECVIF
+        // ttl: u8, // IP_RECVTTL
+        // dscp: u6, // IP_RECVTOS
+        // ecn: u2, // IP_RECVTOS
     }
 
-    pub struct UdpReceiveFromResult {
-        bytes_received: usize,
-        truncated: bool, // MSG_TRUNC
-        address: IpSocketAddress,
+    pub struct UdpSendOptions {
+        remote_address: IpSocketAddress,
+
+        // Possible future additions:
+        // local_address: IpSocketAddress, // IP_PKTINFO / IP_SENDSRCADDR / IPV6_PKTINFO
     }
 
     pub enum TcpShutdownType {
@@ -180,7 +190,6 @@ pub mod socket_udp {
     }
 
     pub trait UdpSocket : IpSocket {
-        type UdpConnectionSocket : UdpConnectionSocket;
 
         /// Bind the socket to a specific IP address and port.
         ///
@@ -192,6 +201,10 @@ pub mod socket_udp {
         /// implicitly bind the socket.
         /// 
         /// Returns an error if the socket is already bound.
+        /// 
+        /// TODO: disallow wildcard binds as long as there isn't a way to pass the local address to send & receive?
+        /// - https://blog.cloudflare.com/everything-you-ever-wanted-to-know-about-udp-sockets-but-were-afraid-to-ask-part-1/#sourcing-packets-from-a-wildcard-socket
+        /// - https://blog.powerdns.com/2012/10/08/on-binding-datagram-udp-sockets-to-the-any-addresses/
         /// 
         /// # References
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/bind.html
@@ -219,12 +232,15 @@ pub mod socket_udp {
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/recvfrom.html
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/recvmsg.html
         /// - https://man7.org/linux/man-pages/man2/recv.2.html
-        fn receive_from(&self, iovs: &mut IovecArray) -> Result<UdpReceiveFromResult, errno>;
+        fn receive(&self, iovs: &mut IovecArray) -> Result<UdpReceiveResult, errno>;
 
-        /// Receive a message just like `receive_from`, but don't remove the message from the queue.
-        fn peek_from(&self, iovs: &mut IovecArray) -> Result<UdpReceiveFromResult, errno>;
+        /// Receive a message just like `receive`, but don't remove the message from the queue.
+        fn peek(&self, iovs: &mut IovecArray) -> Result<UdpReceiveResult, errno>;
 
         /// Send a message to a specific destination address.
+        /// 
+        /// The remote address option is required. To send a message to the "connected" peer,
+        /// call `remote_address` to get their address.
         /// 
         /// Returns the number of bytes sent.
         /// 
@@ -234,14 +250,13 @@ pub mod socket_udp {
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/sendto.html
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/sendmsg.html
         /// - https://man7.org/linux/man-pages/man2/send.2.html
-        fn send_to(&self, iovs: &IovecArray, remote_address: IpSocketAddress) -> Result<usize, errno>;
+        fn send(&self, iovs: &IovecArray, options: UdpSendOptions) -> Result<usize, errno>;
 
         /// Set the destination address.
         /// 
         /// When a destination address is set:
         /// - all receive operations will only return datagrams sent from the provided `remote_address`.
-        /// - the `send` function will use this remote_address.
-        /// - the `send_to` function can still be used to send to any other destination, however you can't receive their response.
+        /// - the `send` function can still be used to send to any other destination, however you can't receive their response.
         /// 
         /// Similar to `connect(sock, ...)` in POSIX.
         /// 
@@ -254,36 +269,7 @@ pub mod socket_udp {
         /// # References
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html
         /// - https://man7.org/linux/man-pages/man2/connect.2.html
-        fn connect(self, remote_address: IpSocketAddress) -> Result<Self::UdpConnectionSocket, (Self, errno)>;
-    }
-
-    pub trait UdpConnectionSocket : UdpSocket + InputByteStream + OutputByteStream {
-
-        /// Receive a message from the address set with `connect`.
-        /// 
-        /// Returns:
-        /// - The number of bytes read.
-        /// - If the received datagram was larger than the provided buffers,
-        ///     the excess data is lost and the `truncated` flag will be set.
-        /// 
-        /// # References
-        /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/recv.html
-        /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/recvmsg.html
-        /// - https://man7.org/linux/man-pages/man2/recv.2.html
-        fn receive(&self, iovs: &mut IovecArray) -> Result<UdpReceiveResult, errno>;
-
-        /// Receive a message just like `receive`, but don't remove the message from the queue.
-        fn peek(&self, iovs: &mut IovecArray) -> Result<UdpReceiveResult, errno>;
-
-        /// Send a message to the address set with `connect`.
-        /// 
-        /// Returns the number of bytes sent.
-        /// 
-        /// # References
-        /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/send.html
-        /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/sendmsg.html
-        /// - https://man7.org/linux/man-pages/man2/send.2.html
-        fn send(&self, iovs: &IovecArray) -> Result<usize, errno>;
+        fn connect(&self, remote_address: IpSocketAddress) -> Result<(), errno>;
 
         /// Get the address set with `connect`.
         /// 
