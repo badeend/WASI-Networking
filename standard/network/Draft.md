@@ -399,6 +399,8 @@ pub mod socket_tcp {
         /// - Linux: effectively ignores the shutdown call. New data can still be read. If not done will ultimately block the sender.
         /// - Windows: sends RST
         /// 
+        /// TODO: Look into how different platforms behave when trying to shut down the same direction multiple times.
+        /// 
         /// # References
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/shutdown.html
         /// - https://man7.org/linux/man-pages/man2/shutdown.2.html
