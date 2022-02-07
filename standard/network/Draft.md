@@ -44,7 +44,7 @@ Dualstack support per platform according to the internet: (Not verified)
 - Checks for IPv4 & IPv6 support of the host.
 - getnameinfo
 - gethostname
-- rescvmsg/sendmsg with cmsg / ancillary data
+- recvmsg/sendmsg with cmsg / ancillary data
 - ioctl(fd, FIONREAD, ...)
 - Network interface enumeration
 - Anything higher level than sockets; TLS/SSL, HTTP, ...
