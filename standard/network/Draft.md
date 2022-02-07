@@ -137,6 +137,11 @@ pub mod new_typenames {
         Send, // SHUT_WR
         Both, // SHUT_RDWR
     }
+
+    pub struct IpResolveAddressesOptions {
+        address_family: Option<IpAddressFamily>,
+        include_unavailable: bool,
+    }
 }
 
 
@@ -464,7 +469,7 @@ pub mod ip_resolve_address {
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/getaddrinfo.html
         /// - https://man7.org/linux/man-pages/man3/getaddrinfo.3.html
         /// 
-        fn resolve_addresses(&self, name: String, address_family: Option<IpAddressFamily>, include_unavailable: bool) -> Result<Vec<IpAddress>, errno>;
+        fn resolve_addresses(&self, name: &str, options: IpResolveAddressesOptions) -> Result<Vec<IpAddress>, errno>;
     }
 }
 
