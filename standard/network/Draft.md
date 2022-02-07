@@ -64,6 +64,7 @@ Dualstack support per platform according to the internet: (Not verified)
 - Should Windows implementations try to emulate UNIX behaviour by setting SO_EXCLUSIVEADDRUSE by default?
 - iovec lengths are encoded as `usize` fields in UNIX, but `u32` in Windows regardless of OS-bitness. Similarly, the number of bytes read in the return value of recv is a `ssize` on UNIX, but `u32` on Windows. Could be solved by silently capping the buffers at ssize::MAX before passing them to the native syscall?
 - This proposal doesn't mention (yet) how a wasm module should get a hold of the capability handles (IpAddressResolver, UdpCapableNetwork, TcpCapableNetwork).
+- Move scope_id out of Ipv6SocketAddress and into Ipv6Address? It seems logical that wherever the IPv6 address flows, the scope_id should flow too. This is the way Java and .NET have implemented it.
 - Also, see the TODO comments sprinkled throughout the code below.
 
 ## Proposal spec
@@ -96,7 +97,6 @@ pub mod new_typenames {
     pub struct Ipv6Address { // Interface Types doesn't have either u128 or fixed length arrays. https://github.com/WebAssembly/interface-types/issues/146
         data_msb: u64,
         data_lsb: u64,
-        scope_id: u32, // sin6_scope_id
     }
 
     pub enum IpAddress {
@@ -113,6 +113,7 @@ pub mod new_typenames {
         port: u16, // sin6_port
         flowinfo: u32, // sin6_flowinfo
         address: Ipv6Address, // sin6_addr
+        scope_id: u32, // sin6_scope_id
     }
 
     pub enum IpSocketAddress {
