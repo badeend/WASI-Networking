@@ -266,6 +266,8 @@ pub mod socket_udp {
         ///     Feels like it was chosen just to shoehorn UDP into the existing Socket interface.
         ///     Do we have to keep this name?
         /// 
+        /// TODO: add unconnect ability.
+        /// 
         /// # References
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html
         /// - https://man7.org/linux/man-pages/man2/connect.2.html
