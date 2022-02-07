@@ -423,8 +423,7 @@ pub mod ip_resolve_address {
         /// Resolve an internet host name to a list of IP addresses.
         /// 
         /// # Parameters:
-        /// - `name`: The name to look up. If this is an IP address in string form, the address is deserialized and
-        ///   returned without making any network calls.
+        /// - `name`: The name to look up. IP addresses are not allowed.
         /// - `address_family`: If provided, limit the results to addresses of this specific address family.
         /// - `include_unavailable`: When set to true, this function will also return addresses of which the runtime
         ///   thinks (or knows) can't be connected to at the moment. For example, this will return IPv6 addresses on
@@ -437,6 +436,11 @@ pub mod ip_resolve_address {
         /// - The results are returned in the order the runtime thinks the application should try to connect to first.
         /// - Never returns IPv4-mapped IPv6 addresses.
         /// 
+        /// Returns EAI_FAIL when `name` is:
+        /// - empty
+        /// - an IP address
+        /// - a syntactically invalid domain name in another way
+        /// 
         /// 
         /// # Comparison with getaddrinfo:
         /// 
@@ -445,14 +449,15 @@ pub mod ip_resolve_address {
         /// That eliminates many of the other "hats" getaddrinfo has, like:
         /// - Mapping service names to port numbers ("https" -> 443)
         /// - Mapping service names/ports to socket types ("https" -> SOCK_STREAM)
+        /// - Network interface name translation
+        /// - IP address deserialization
         /// - IP address string canonicalization
-        /// - Constants lookup for INADDR_ANY, INADDR_LOOPBACK, IN6ADDR_ANY_INIT & IN6ADDR_LOOPBACK_INIT
+        /// - Constants lookup for INADDR_ANY, INADDR_LOOPBACK, IN6ADDR_ANY_INIT and IN6ADDR_LOOPBACK_INIT
         /// 
-        /// Although not actually verified, I think most or all of these functionalities can shimmed in the libc implementation.
+        /// Almost all of these functionalities can be shimmed in the libc implementation. The exception is network
+        /// interface name translation. That requires a future `if_nametoindex`-like syscall.
         /// 
         /// This function has a different signature and semantics than `getaddrinfo`. The dissimilar name is chosen to reflect this.
-        /// 
-        /// TODO: Can resolve_addresses be (ab)used to enumerate the installed network interfaces?
         /// 
         /// # References:
         /// - https://pubs.opengroup.org/onlinepubs/9699919799/functions/getaddrinfo.html
