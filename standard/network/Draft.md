@@ -90,12 +90,13 @@ pub mod new_typenames {
         Ipv6, // AF_INET6
     }
 
-    pub struct Ipv4Address {
-        address: [u8; 4], // TODO: https://github.com/WebAssembly/interface-types/issues/146
+    pub struct Ipv4Address { // Single field record for symmetry with Ipv6Address
+        data: u32,
     }
-    pub struct Ipv6Address {
-        address: [u8; 16], // TODO: https://github.com/WebAssembly/interface-types/issues/146
-        scope_id: u32,
+    pub struct Ipv6Address { // Interface Types doesn't have either u128 or fixed length arrays. https://github.com/WebAssembly/interface-types/issues/146
+        data_msb: u64,
+        data_lsb: u64,
+        scope_id: u32, // sin6_scope_id
     }
 
     pub enum IpAddress {
