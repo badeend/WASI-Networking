@@ -66,6 +66,7 @@ Dualstack support per platform according to the internet: (Not verified)
 - This proposal doesn't mention (yet) how a wasm module should get a hold of the capability handles (IpAddressResolver, UdpCapableNetwork, TcpCapableNetwork).
 - Move scope_id out of Ipv6SocketAddress and into Ipv6Address? It seems logical that wherever the IPv6 address flows, the scope_id should flow too. This is the way Java and .NET have implemented it.
 - UDP sockets currently aren't InputByteStream & OutputByteStreams. In POSIX terms: they can't be read from & written to using the `read` and `write` syscalls. Can this be shimmed in wasi-libc?
+- Add the inverse of `resolve_addresses`? Eg `resolve_name` based on `getnameinfo`. Although they would be each other's mirror image, their use cases are very different. `resolve_addresses` is used by almost every application that is connected to the internet, while its inverse `resolve_name` is very niche.
 - Also, see the TODO comments sprinkled throughout the code below.
 
 ## Proposal spec
