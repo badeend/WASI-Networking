@@ -1,4 +1,6 @@
-# WASI Networking proposal
+# Proposal moved to https://github.com/WebAssembly/wasi-sockets
+
+### ~~WASI Networking proposal~~
 
 Please file an issue for comments, questions and additions.
 

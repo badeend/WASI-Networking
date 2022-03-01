@@ -1,6 +1,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4323447.svg)](https://doi.org/10.5281/zenodo.4323447)
 
-# Initial draft can be found [here.](standard/network/Draft.md)
+# Proposal moved to https://github.com/WebAssembly/wasi-sockets
+
+### ~~Initial draft can be found [here.](standard/network/Draft.md)~~ 
 
 This repository is meant for discussion and prototyping.
 
